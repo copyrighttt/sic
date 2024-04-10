@@ -1,0 +1,56 @@
+ospf connection for r1,r2,r3
+Router>en
+Router#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#router ospf 1
+Router(config-router)#network 192.168.10.2 255.255.255.0 area 1
+Router(config-router)#network 192.168.10.3 255.255.255.0 area 1
+Router(config-router)#network 10.0.0.1 255.0.0.0 area 1
+
+Part 1: Configure OSPF MD5 Authentication
+R1(config)# router ospf 1
+R1(config-router)# area 0 authentication message-digest
+all router
+
+R1(config)# interface s0/0/0
+R1(config-if)# ip ospf message-digest-key 1 md5 MD5pa55
+R2(config)# interface s0/0/0
+R2(config-if)# ip ospf message-digest-key 1 md5 MD5pa55
+R2(config-if)# interface s0/0/1
+R2(config-if)# ip ospf message-digest-key 1 md5 MD5pa55
+R3(config)# interface s0/0/1
+R3(config-if)# ip ospf message-digest-key 1 md5 MD5pa55
+
+Step 4: Verify configurations.
+a. Verify the MD5 authentication configurations using the commands show ip ospf interface. 
+
+Part 2: Configure NTP for all router 
+R1(config)# ntp server 192.168.1.5
+R1(config)# ntp update-calendar
+R1(config)# ntp update-calendar
+R1(config)# ntp authenticate
+R1(config)# ntp trusted-key 1
+R1(config)# ntp authentication-key 1 md5 NTPpass
+exit
+show clock
+
+Part 3: Configure Routers to Log Messages to the Syslog Server
+R1(config)# logging host 192.168.1.6
+R2(config)# logging host 192.168.1.6
+R3(config)# logging host 192.168.1.6
+
+Part 4: Configure R3 to Support SSH Connections
+R3(config)# ip domain-name cybernet.com
+R3(config)# username SSHadmin privilege 15 secret ciscosshpa55
+R3(config)# line vty 0 4
+R3(config-line)# login local
+R3(config-line)# transport input ssh
+hostname r2
+R3(config)# crypto key generate rsa
+exit
+
+9: Connect to R3 using SSH on PC-C.
+Open the Desktop of PC-C. Select the Command Prompt icon. From PC-C, enter the command to connect to
+R3 via SSH. When prompted for the password, enter the password configured for the administrator
+ciscosshpa55.
+PC> ssh –l SSHadmin 192.168.3.1
